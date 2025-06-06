@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Airbnb Monitor Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card h2 {
+            color: #ff5a5f;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #ff5a5f;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ff5a5f, #ff7875);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 90, 95, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #8a9ba8);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+        
+        .search-list {
+            margin-top: 20px;
+        }
+        
+        .search-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-item .info {
+            flex-grow: 1;
+        }
+        
+        .search-item .name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .search-item .url {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .search-item.disabled {
+            opacity: 0.6;
+            background: #f1f3f4;
+        }
+        
+        .search-item.disabled .name {
+            color: #666;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .status {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .status.running {
+            border-left: 5px solid #28a745;
+        }
+        
+        .status.stopped {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .toggle-monitor {
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Airbnb Monitor Dashboard</h1>
+            <p>Manage your search URLs and monitor status</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>🔍 Add New Search</h2>
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="searchName">Search Name</label>
+                        <input type="text" id="searchName" placeholder="e.g., Copenhagen City Center" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="searchUrl">Airbnb Search URL</label>
+                        <textarea id="searchUrl" placeholder="Paste your full Airbnb search URL here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn">
+                        ➕ Add Search
+                    </button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>📧 Email Settings</h2>
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="senderEmail">Sender Email</label>
+                        <input type="email" id="senderEmail" placeholder="your-email@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="senderPassword">App Password</label>
+                        <input type="password" id="senderPassword" placeholder="16-character app password">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipientEmail">Recipient Email</label>
+                        <input type="email" id="recipientEmail" placeholder="notifications@gmail.com">
+                    </div>
+                    <button type="submit" class="btn">
+                        💾 Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Your Search URLs</h2>
+            <div id="searchList" class="search-list">
+                <!-- Searches will be populated here -->
+            </div>
+            <div id="noSearches" style="text-align: center; color: #666; padding: 40px;">
+                No searches configured yet. Add your first search above!
+            </div>
+        </div>
+        
+        <div class="status stopped" id="monitorStatus">
+            <h3>Monitor Status: <span id="statusText">Stopped</span></h3>
+            <p>Configure your searches and email settings, then start monitoring!</p>
+            <div class="toggle-monitor">
+                <button class="btn" id="toggleBtn" onclick="toggleMonitor()">
+                    ▶️ Start Monitoring
+                </button>
+                <button class="btn btn-secondary" onclick="generateConfig()">
+                    📄 Generate Config Files
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let searches = JSON.parse(localStorage.getItem('airbnb_searches') || '[]');
+        let emailSettings = JSON.parse(localStorage.getItem('email_settings') || '{}');
+        let isMonitoring = false;
+        
+        // Load saved data on page load
+        window.onload = function() {
+            loadEmailSettings();
+            renderSearches();
+        };
+        
+        // Add new search
+        document.getElementById('searchForm').onsubmit = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('searchName').value;
+            const url = document.getElementById('searchUrl').value;
+            
+            if (name && url) {
+                const search = {
+                    id: Date.now(),
+                    name: name,
+                    url: url,
+                    enabled: true,
+                    created: new Date().toISOString()
+                };
+                
+                searches.push(search);
+                localStorage.setItem('airbnb_searches', JSON.stringify(searches));
+                
+                // Clear form
+                document.getElementById('searchName').value = '';
+                document.getElementById('searchUrl').value = '';
+                
+                renderSearches();
+                showAlert('Search added successfully!', 'success');
+            }
+        };
+        
+        // Save email settings
+        document.getElementById('emailForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            emailSettings = {
+                senderEmail: document.getElementById('senderEmail').value,
+                senderPassword: document.getElementById('senderPassword').value,
+                recipientEmail: document.getElementById('recipientEmail').value
+            };
+            
+            localStorage.setItem('email_settings', JSON.stringify(emailSettings));
+            showAlert('Email settings saved!', 'success');
+        };
+        
+        function loadEmailSettings() {
+            if (emailSettings.senderEmail) {
+                document.getElementById('senderEmail').value = emailSettings.senderEmail;
+                document.getElementById('recipientEmail').value = emailSettings.recipientEmail || emailSettings.senderEmail;
+            }
+        }
+        
+        function renderSearches() {
+            const searchList = document.getElementById('searchList');
+            const noSearches = document.getElementById('noSearches');
+            
+            if (searches.length === 0) {
+                searchList.style.display = 'none';
+                noSearches.style.display = 'block';
+                return;
+            }
+            
+            searchList.style.display = 'block';
+            noSearches.style.display = 'none';
+            
+            searchList.innerHTML = searches.map(search => `
+                <div class="search-item ${search.enabled === false ? 'disabled' : ''}">
+                    <div class="info">
+                        <div class="name">
+                            ${search.name} 
+                            ${search.enabled === false ? '<span style="color: #dc3545; font-size: 12px;">(DISABLED)</span>' : '<span style="color: #28a745; font-size: 12px;">(ACTIVE)</span>'}
+                        </div>
+                        <div class="url">${search.url.substring(0, 100)}${search.url.length > 100 ? '...' : ''}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-small ${search.enabled === false ? '' : 'btn-secondary'}" onclick="toggleSearch(${search.id})" style="background: ${search.enabled === false ? '#28a745' : '#ffc107'}; margin-right: 5px;">
+                            ${search.enabled === false ? '✅ Enable' : '⏸️ Disable'}
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="editSearch(${search.id})">✏️ Edit</button>
+                        <button class="btn btn-small" onclick="deleteSearch(${search.id})" style="background: #dc3545;">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleSearch(id) {
+            const search = searches.find(s => s.id === id);
+            if (search) {
+                search.enabled = search.enabled === false ? true : false;
+                localStorage.setItem('airbnb_searches', JSON.stringify(searches));
+                renderSearches();
+                showAlert(`Search "${search.name}" ${search.enabled ? 'enabled' : 'disabled'}!`, 'success');
+            }
+        }
